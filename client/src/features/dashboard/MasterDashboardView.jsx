@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
+export default function MasterDashboardView({ onNavigate, setActiveTab, onOpenQuickAdd, onOpenTrace }) {
+  const navigate = (tab) => {
+    if (typeof onNavigate === 'function') {
+      onNavigate(tab);
+    } else if (typeof setActiveTab === 'function') {
+      setActiveTab(tab);
+    }
+  };
+
   const [metrics, setMetrics] = useState({
     activeLeads: 21,
     confirmedOrders: 7,
@@ -148,21 +156,21 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
             <button
               type="button"
               className="hero-btn primary"
-              onClick={() => onNavigate('sales')}
+              onClick={() => navigate('sales')}
             >
               Open Sales
             </button>
             <button
               type="button"
               className="hero-btn outline"
-              onClick={() => onNavigate('tasks')}
+              onClick={() => navigate('tasks')}
             >
               Task Centre
             </button>
             <button
               type="button"
               className="hero-btn outline"
-              onClick={() => onNavigate('engineering')}
+              onClick={() => navigate('engineering')}
             >
               Engineering & BOM
             </button>
@@ -184,7 +192,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
 
       {/* 6 Key Operational KPI Cards */}
       <div className="kpi-grid">
-        <div className="kpi-card" onClick={() => onNavigate('sales')}>
+        <div className="kpi-card" onClick={() => navigate('sales')}>
           <div className="kpi-header">
             <span className="kpi-label">ACTIVE LEADS</span>
             <span className="kpi-indicator dot-green"></span>
@@ -196,7 +204,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
           </div>
         </div>
 
-        <div className="kpi-card" onClick={() => onNavigate('sales')}>
+        <div className="kpi-card" onClick={() => navigate('sales')}>
           <div className="kpi-header">
             <span className="kpi-label">CONFIRMED ORDERS</span>
             <span className="kpi-indicator dot-emerald"></span>
@@ -208,7 +216,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
           </div>
         </div>
 
-        <div className="kpi-card" onClick={() => onNavigate('tasks')}>
+        <div className="kpi-card" onClick={() => navigate('tasks')}>
           <div className="kpi-header">
             <span className="kpi-label">OPEN TASKS</span>
             <span className="kpi-indicator dot-teal"></span>
@@ -220,7 +228,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
           </div>
         </div>
 
-        <div className="kpi-card" onClick={() => onNavigate('production')}>
+        <div className="kpi-card" onClick={() => navigate('production')}>
           <div className="kpi-header">
             <span className="kpi-label">PRODUCTION OUTPUT</span>
             <span className="kpi-indicator dot-purple"></span>
@@ -232,7 +240,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
           </div>
         </div>
 
-        <div className="kpi-card" onClick={() => onNavigate('finance')}>
+        <div className="kpi-card" onClick={() => navigate('finance')}>
           <div className="kpi-header">
             <span className="kpi-label">RECEIVABLE</span>
             <span className="kpi-indicator dot-amber"></span>
@@ -244,7 +252,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
           </div>
         </div>
 
-        <div className="kpi-card" onClick={() => onNavigate('tasks')}>
+        <div className="kpi-card" onClick={() => navigate('tasks')}>
           <div className="kpi-header">
             <span className="kpi-label">AVG PERFORMANCE</span>
             <span className="kpi-indicator dot-green"></span>
@@ -309,7 +317,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
                       <button
                         type="button"
                         className="cell-btn"
-                        onClick={() => onNavigate(row.actionTab)}
+                        onClick={() => navigate(row.actionTab)}
                       >
                         Inspect →
                       </button>
@@ -336,7 +344,7 @@ export default function MasterDashboardView({ onNavigate, onOpenQuickAdd }) {
               <div
                 key={item.id}
                 className="action-card"
-                onClick={() => onNavigate(item.tab)}
+                onClick={() => navigate(item.tab)}
               >
                 <div className="action-card-header">
                   <span className="action-title">{item.title}</span>

@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client";
+import pkg from "@prisma/client";
+const { Prisma } = pkg;
 import { hasPermission } from "../../constants/permissions.js";
 import { makeCode } from "../../utils/codes.js";
 import { fail } from "../../utils/http.js";

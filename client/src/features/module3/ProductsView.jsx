@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "./api";
+import FileUploadImportModal from "../../components/modals/FileUploadImportModal";
 import {
   Boxes,
   Plus,
@@ -15,11 +16,13 @@ import {
   Layers,
   Image as ImageIcon,
   X,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export default function ProductsView({ onSelectProductForTrace }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -65,11 +68,37 @@ export default function ProductsView({ onSelectProductForTrace }) {
         page,
         limit: 25,
       });
-      setProducts(res.products);
-      setCategories(res.categories);
-      setPagination(res.pagination);
+
+      const rawProducts = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.products)
+        ? res.products
+        : Array.isArray(res?.data?.products)
+        ? res.data.products
+        : Array.isArray(res?.data)
+        ? res.data
+        : [];
+
+      const rawCategories = Array.isArray(res?.categories)
+        ? res.categories
+        : Array.isArray(res?.data?.categories)
+        ? res.data.categories
+        : [];
+
+      setProducts(rawProducts);
+      if (rawCategories.length > 0) {
+        setCategories(rawCategories);
+      }
+      setPagination(
+        res?.pagination ||
+          res?.data?.pagination || {
+            total: rawProducts.length,
+            page: 1,
+            pages: 1,
+          }
+      );
     } catch (err) {
-      alert("Failed to load products: " + err.message);
+      console.warn("Products load notice:", err.message);
     } finally {
       setLoading(false);
     }
@@ -169,8 +198,8 @@ export default function ProductsView({ onSelectProductForTrace }) {
             value={selectedCategory}
             onChange={(e) => { setSelectedCategory(e.target.value); setPage(1); }}
           >
-            <option value="">All Categories ({categories.length})</option>
-            {categories.map((c) => (
+            <option value="">All Categories ({(categories || []).length})</option>
+            {(categories || []).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
@@ -185,9 +214,19 @@ export default function ProductsView({ onSelectProductForTrace }) {
           </label>
         </div>
 
-        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          <Plus size={16} /> New Product
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            style={{ display: "flex", alignItems: "center", gap: 6, borderColor: "#10b981", color: "#047857", fontWeight: 600 }}
+            onClick={() => setShowImportModal(true)}
+          >
+            <FileSpreadsheet size={16} /> Import CSV / Excel
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+            <Plus size={16} /> New Product
+          </button>
+        </div>
       </div>
 
       {/* Product Data Table */}
@@ -358,7 +397,7 @@ export default function ProductsView({ onSelectProductForTrace }) {
                       onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                     >
                       <option value="">Select Category</option>
-                      {categories.map((c) => (
+                      {(categories || []).map((c) => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
@@ -716,6 +755,14 @@ export default function ProductsView({ onSelectProductForTrace }) {
           </div>
         </div>
       )}
+
+      {/* FILE UPLOAD & CSV / XLSX IMPORTER */}
+      <FileUploadImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        defaultEntity="products"
+        onSuccess={loadProducts}
+      />
     </div>
   );
 }

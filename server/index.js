@@ -71,6 +71,13 @@ app.get("/api/health", (req, res) => {
 // Authentication Routes (JWT / bearer + profile)
 app.use("/api/auth", authRoutes);
 
+// Module 3: Product & Engineering Workspace (Mount products before general /api router)
+app.use("/api/products", productsRoutes);
+app.use("/api/specifications", specificationsRoutes);
+app.use("/api/boms", bomsRoutes);
+app.use("/api/traceability", traceabilityRoutes);
+app.use("/api/engineering", engineeringRoutes);
+
 // Module 1: CRM & Sales Workspace (Customers, Enquiries, Quotations, Sales Orders, Invoices, Dashboard)
 const crmSalesRouter = createModularApiRoutes({
   prisma,
@@ -81,18 +88,12 @@ const crmSalesRouter = createModularApiRoutes({
 app.use("/api", crmSalesRouter);
 app.use("/api/v1", crmSalesRouter);
 
-// Module 2 & 5: Field Operations, Projects, Installations, Service Tickets, Procurement, Inventory, Vendors
-app.use("/api", modulesRouter);
-
 // Module 6: Commercial & Finance ERP
 app.use("/api/finance", financeRoutes);
 
-// Module 3: Product & Engineering Workspace
-app.use("/api/engineering", engineeringRoutes);
-app.use("/api/products", productsRoutes);
-app.use("/api/specifications", specificationsRoutes);
-app.use("/api/boms", bomsRoutes);
-app.use("/api/traceability", traceabilityRoutes);
+// Module 2 & 5: Field Operations, Projects, Installations, Service Tickets, Procurement, Inventory, Vendors
+app.use("/api", modulesRouter);
+
 app.use("/api/users", userRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/services", serviceRoutes);

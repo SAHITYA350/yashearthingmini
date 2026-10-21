@@ -42,9 +42,11 @@ export default function AuthView({ onLoginSuccess }) {
         throw new Error(data.message || 'Invalid login credentials');
       }
       if (data.data?.token) {
+        localStorage.setItem('token', data.data.token);
         localStorage.setItem('yash_auth_token', data.data.token);
       }
       if (data.data?.user) {
+        localStorage.setItem('user', JSON.stringify(data.data.user));
         localStorage.setItem('yash_user', JSON.stringify(data.data.user));
       }
       onLoginSuccess(data.data.user);

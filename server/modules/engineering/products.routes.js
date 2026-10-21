@@ -129,6 +129,83 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// POST /api/products/batch - Bulk import products from CSV or XLSX
+router.post("/batch", async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, error: "Items array is required for batch import." });
+    }
+
+    const defaultCategory = await prisma.category.findFirst() || await prisma.category.create({
+      data: { name: "General Hardware", type: "FINISHED_GOOD" }
+    });
+
+    const results = [];
+    for (const item of items) {
+      const sku = (item.sku || item.SKU || "").toString().trim().toUpperCase();
+      const name = (item.name || item.Name || item.productName || item["Product Name"] || "").toString().trim();
+      if (!sku || !name) continue;
+
+      let categoryId = item.categoryId ? parseInt(item.categoryId, 10) : null;
+      const catName = item.category || item.Category || item.categoryName;
+      if (!categoryId && catName) {
+        const cat = await prisma.category.upsert({
+          where: { name: catName.trim() },
+          update: {},
+          create: { name: catName.trim(), type: "FINISHED_GOOD" }
+        });
+        categoryId = cat.id;
+      }
+      if (!categoryId) categoryId = defaultCategory.id;
+
+      const listPrice = parseFloat(item.listPrice || item.price || item.Price || 0);
+      const gstPercent = parseFloat(item.gstPercent || item.gst || item.GST || 18);
+      const unitOfMeasure = (item.unitOfMeasure || item.uom || item.UOM || "PCS").toString().trim().toUpperCase();
+      const variant = (item.variant || item.Variant || item.dimensions || "").toString().trim() || null;
+      const isManufactured = item.isManufactured !== undefined ? Boolean(item.isManufactured) : true;
+
+      const record = await prisma.product.upsert({
+        where: { sku },
+        update: {
+          name,
+          variant,
+          categoryId,
+          listPrice,
+          gstPercent,
+          unitOfMeasure,
+          isManufactured,
+          isActive: true
+        },
+        create: {
+          sku,
+          name,
+          variant,
+          categoryId,
+          listPrice,
+          gstPercent,
+          unitOfMeasure,
+          isManufactured,
+          standardMake: item.standardMake || "YASH",
+          hsnCode: item.hsnCode || "8538",
+          isActive: true
+        }
+      });
+      results.push(record);
+    }
+
+    res.json({
+      success: true,
+      message: `Successfully processed ${results.length} products from upload.`,
+      count: results.length,
+      data: results
+    });
+  } catch (err) {
+    console.error("Batch import products error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // POST /api/products - Create a new product
 router.post("/", validateProductCreate, async (req, res) => {
   try {

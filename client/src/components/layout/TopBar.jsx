@@ -10,6 +10,7 @@ export default function TopBar({
   onOpenTaskModal,
   onOpenAddModal,
   onOpenPerformance,
+  onOpenImport,
   onLogout,
 }) {
   const titles = {
@@ -117,6 +118,14 @@ export default function TopBar({
           title="Drawings & Media Library"
         >
           Media Library
+        </button>
+        <button
+          type="button"
+          className="topbtn"
+          onClick={onOpenImport}
+          title="Upload CSV / Excel spreadsheets directly into ERP"
+        >
+          📁 Import CSV/Excel
         </button>
         <button
           type="button"

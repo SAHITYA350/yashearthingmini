@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client";
+import pkg from "@prisma/client";
+const { Prisma } = pkg;
 
 export default function errorHandler(err, req, res, next) {
   if (err instanceof Prisma.PrismaClientKnownRequestError) {

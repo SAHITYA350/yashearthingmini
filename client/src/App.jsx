@@ -21,6 +21,7 @@ import WorkforceView from './features/module7/WorkforceView';
 
 // Quick Modals
 import { QuickAddModal, TraceJobModal, MediaLibraryModal } from './components/modals/QuickModals';
+import FileUploadImportModal from './components/modals/FileUploadImportModal';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -115,6 +116,7 @@ export default function App() {
           onOpenTaskModal={() => setActiveTab('tasks')}
           onOpenPerformance={() => setActiveTab('tasks')}
           onOpenAddModal={() => setModalType('QUICK_ADD')}
+          onOpenImport={() => setModalType('FILE_IMPORT')}
           onLogout={handleLogout}
         />
 
@@ -122,6 +124,7 @@ export default function App() {
           {/* CONTROL TOWER */}
           {activeTab === 'dashboard' && (
             <MasterDashboardView
+              onNavigate={setActiveTab}
               setActiveTab={setActiveTab}
               onOpenQuickAdd={() => setModalType('QUICK_ADD')}
               onOpenTrace={() => setModalType('TRACE_JOB')}
@@ -166,6 +169,12 @@ export default function App() {
       <MediaLibraryModal
         isOpen={modalType === 'MEDIA_LIBRARY'}
         onClose={() => setModalType(null)}
+      />
+
+      <FileUploadImportModal
+        isOpen={modalType === 'FILE_IMPORT'}
+        onClose={() => setModalType(null)}
+        toast={toast}
       />
 
       {toastMsg && <div className="toast">{toastMsg}</div>}
