@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
+import FileUploadImportModal from '../../components/modals/FileUploadImportModal';
 
 export default function ProductionView() {
   const [activeTab, setActiveTab] = useState('planning');
   const [editItem, setEditItem] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const [workOrders, setWorkOrders] = useState([
     {
@@ -91,6 +94,32 @@ export default function ProductionView() {
     setEditItem(null);
   };
 
+  const handleExportCSV = () => {
+    if (!workOrders || workOrders.length === 0) {
+      alert('No work orders to export.');
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(
+      workOrders.map((w) => ({
+        WONumber: w.woNo,
+        Product: w.product,
+        SKU: w.sku,
+        Batch: w.batch,
+        PlannedQty: w.plannedQty,
+        CompletedQty: w.completedQty,
+        RejectedQty: w.rejectedQty,
+        Status: w.status,
+        StartDate: w.startDate,
+        DueDate: w.dueDate,
+        Supervisor: w.supervisor,
+        Shift: w.shift,
+      }))
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'WorkOrders');
+    XLSX.writeFile(wb, `YASH_WorkOrders_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
   return (
     <div className="module-view-container">
       {/* Module Header */}
@@ -99,7 +128,23 @@ export default function ProductionView() {
           <h2>Module 4 · Production & Quality Control</h2>
           <p>Plant shop floor scheduling, work order execution, routing steps, and QA laboratory testing</p>
         </div>
-        <div className="module-header-actions">
+        <div className="module-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="action-btn-outline"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderColor: '#0ea5e9', color: '#0284c7', background: '#fff', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+            onClick={handleExportCSV}
+          >
+            📥 Export CSV
+          </button>
+          <button
+            type="button"
+            className="action-btn-outline"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderColor: '#10b981', color: '#047857', background: '#fff', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+            onClick={() => setShowImportModal(true)}
+          >
+            📁 Import CSV / Excel
+          </button>
           <button
             type="button"
             className="action-btn-primary"
@@ -356,6 +401,14 @@ export default function ProductionView() {
           </div>
         </div>
       )}
+
+      {/* FILE UPLOAD & CSV / XLSX IMPORTER */}
+      <FileUploadImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        defaultEntity="products"
+        onSuccess={() => {}}
+      />
     </div>
   );
 }

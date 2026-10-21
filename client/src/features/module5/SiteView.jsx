@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
+import FileUploadImportModal from '../../components/modals/FileUploadImportModal';
 
 export default function SiteView({ onOpenQuickAdd }) {
   const [activeStep, setActiveStep] = useState('projects');
@@ -7,6 +9,7 @@ export default function SiteView({ onOpenQuickAdd }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editItem, setEditItem] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -50,6 +53,33 @@ export default function SiteView({ onOpenQuickAdd }) {
     setEditItem(null);
   };
 
+  const handleExportCSV = () => {
+    let dataToExport = [];
+    let sheetName = 'SiteOps';
+    let fileName = `YASH_${activeStep}_export_${new Date().toISOString().slice(0, 10)}.csv`;
+
+    if (activeStep === 'projects') {
+      dataToExport = projects;
+      sheetName = 'Projects';
+    } else if (activeStep === 'installations') {
+      dataToExport = installations;
+      sheetName = 'Installations';
+    } else {
+      dataToExport = tickets;
+      sheetName = 'Tickets';
+    }
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert('No data to export.');
+      return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, fileName);
+  };
+
   return (
     <div className="module-view-container">
       {/* Module Header */}
@@ -58,7 +88,23 @@ export default function SiteView({ onOpenQuickAdd }) {
           <h2>Module 5 · Project, Installation & Field Service</h2>
           <p>Site execution operations: EPC project scheduling, installation testing logs with soil resistivity proof, and after-sales service tickets</p>
         </div>
-        <div className="module-header-actions">
+        <div className="module-header-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="action-btn-outline"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderColor: '#0ea5e9', color: '#0284c7', background: '#fff', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+            onClick={handleExportCSV}
+          >
+            📥 Export CSV
+          </button>
+          <button
+            type="button"
+            className="action-btn-outline"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, borderColor: '#10b981', color: '#047857', background: '#fff', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: '0.82rem' }}
+            onClick={() => setShowImportModal(true)}
+          >
+            📁 Import CSV / Excel
+          </button>
           <button
             type="button"
             className="action-btn-primary"
@@ -346,6 +392,14 @@ export default function SiteView({ onOpenQuickAdd }) {
           </div>
         </div>
       )}
+
+      {/* FILE UPLOAD & CSV / XLSX IMPORTER */}
+      <FileUploadImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        defaultEntity="leads"
+        onSuccess={loadData}
+      />
     </div>
   );
 }

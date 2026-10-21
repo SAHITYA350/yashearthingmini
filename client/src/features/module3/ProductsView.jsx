@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import { api } from "./api";
 import FileUploadImportModal from "../../components/modals/FileUploadImportModal";
 import {
@@ -17,6 +18,7 @@ import {
   Image as ImageIcon,
   X,
   FileSpreadsheet,
+  Download,
 } from "lucide-react";
 
 export default function ProductsView({ onSelectProductForTrace }) {
@@ -175,6 +177,30 @@ export default function ProductsView({ onSelectProductForTrace }) {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!products || products.length === 0) {
+      alert("No products available to export.");
+      return;
+    }
+    const ws = XLSX.utils.json_to_sheet(
+      products.map((p) => ({
+        SKU: p.sku,
+        Name: p.name,
+        Variant: p.variant || "",
+        Category: p.category?.name || "",
+        ListPrice: p.listPrice,
+        GSTPercent: p.gstPercent,
+        UOM: p.unitOfMeasure,
+        Make: p.standardMake,
+        HSN: p.hsnCode,
+        Manufactured: p.isManufactured ? "YES" : "NO",
+      }))
+    );
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Products");
+    XLSX.writeFile(wb, `YASH_Products_Catalogue_${new Date().toISOString().slice(0, 10)}.csv`);
+  };
+
   return (
     <div>
       {/* Action Toolbar */}
@@ -215,6 +241,14 @@ export default function ProductsView({ onSelectProductForTrace }) {
         </div>
 
         <div style={{ display: "flex", gap: 8 }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            style={{ display: "flex", alignItems: "center", gap: 6, borderColor: "#0ea5e9", color: "#0284c7", fontWeight: 600 }}
+            onClick={handleExportCSV}
+          >
+            <Download size={16} /> Export CSV
+          </button>
           <button
             type="button"
             className="btn btn-outline"

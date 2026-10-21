@@ -1,4 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+export const ROLE_PERMISSIONS = {
+  // Admin & HR see all modules
+  ADMIN: ['dashboard', 'sales', 'supply', 'engineering', 'production', 'site', 'finance', 'tasks'],
+  SUPER_ADMIN: ['dashboard', 'sales', 'supply', 'engineering', 'production', 'site', 'finance', 'tasks'],
+  HR: ['dashboard', 'sales', 'supply', 'engineering', 'production', 'site', 'finance', 'tasks'],
+  DIRECTOR: ['dashboard', 'sales', 'supply', 'engineering', 'production', 'site', 'finance', 'tasks'],
+
+  // Sales
+  SALES_MANAGER: ['dashboard', 'sales', 'finance', 'tasks'],
+  SALES_CONSULTANT: ['dashboard', 'sales', 'tasks'],
+  SALES: ['dashboard', 'sales', 'tasks'],
+
+  // Supply & Procurement
+  PROCUREMENT_OFFICER: ['dashboard', 'supply', 'engineering', 'tasks'],
+  SUPPLY: ['dashboard', 'supply', 'tasks'],
+  VENDOR_MANAGER: ['dashboard', 'supply', 'tasks'],
+
+  // Engineering & R&D
+  ENGINEER: ['dashboard', 'engineering', 'production', 'tasks'],
+  CHIEF_ENGINEER: ['dashboard', 'engineering', 'production', 'tasks'],
+  DESIGNER: ['dashboard', 'engineering', 'tasks'],
+
+  // Production & Quality
+  PRODUCTION_MANAGER: ['dashboard', 'production', 'engineering', 'tasks'],
+  PLANT_SUPERVISOR: ['dashboard', 'production', 'tasks'],
+  QUALITY_INSPECTOR: ['dashboard', 'production', 'engineering', 'tasks'],
+
+  // Site Operations & Projects
+  PROJECT_MANAGER: ['dashboard', 'site', 'supply', 'tasks'],
+  OPERATIONS: ['dashboard', 'site', 'supply', 'tasks'],
+  SITE_ENGINEER: ['dashboard', 'site', 'tasks'],
+
+  // Finance & Accounts
+  FINANCE_MANAGER: ['dashboard', 'finance', 'sales', 'tasks'],
+  ACCOUNTANT: ['dashboard', 'finance', 'tasks'],
+  BANK_OFFICE_EXECUTIVE: ['dashboard', 'finance', 'tasks'],
+
+  // Back Office & Audit
+  BACK_OFFICER: ['dashboard', 'sales', 'finance', 'tasks'],
+  AUDIT_VIEWER: ['dashboard', 'sales', 'finance', 'tasks'],
+};
 
 export default function Sidebar({
   activeTab,
@@ -8,6 +50,12 @@ export default function Sidebar({
   currentUser,
   counts = {},
 }) {
+  const userRole = (currentUser?.role || 'ADMIN').toUpperCase();
+  const isAdminOrHr = ['ADMIN', 'SUPER_ADMIN', 'HR', 'DIRECTOR'].includes(userRole);
+  const [showAllModules, setShowAllModules] = useState(true);
+
+  const allowedTabs = ROLE_PERMISSIONS[userRole] || ['dashboard', 'sales', 'tasks'];
+
   const handleNavClick = (tab) => {
     setActiveTab(tab);
     if (sidebarOpen && setSidebarOpen) {
@@ -82,6 +130,11 @@ export default function Sidebar({
     },
   ];
 
+  const visibleNavItems = navItems.filter((item) => {
+    if (isAdminOrHr && showAllModules) return true;
+    return allowedTabs.includes(item.id);
+  });
+
   return (
     <>
       {sidebarOpen && (
@@ -119,9 +172,9 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Navigation Groups (1 Title + 1 Subtitle per Module) */}
+        {/* Navigation Groups Filtered by Role (Admin/HR see all) */}
         <div className="sidebar-nav-scroll">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <div key={item.id} className="navgroup">
               <div className="navlabel">{item.group}</div>
               <button
@@ -140,7 +193,7 @@ export default function Sidebar({
           ))}
         </div>
 
-        {/* Current User Session Footer */}
+        {/* Current User Session Footer with Role Access Indicator */}
         {currentUser && (
           <div className="sidebar-user-footer">
             <div className="user-avatar-circle">
@@ -155,7 +208,9 @@ export default function Sidebar({
             </div>
             <div className="user-meta">
               <b>{currentUser.name || 'Enterprise User'}</b>
-              <small>{currentUser.role || 'ADMIN'}</small>
+              <small style={{ color: '#10b981', fontWeight: 600 }}>
+                {isAdminOrHr ? 'Full Access · Admin / HR' : `Role · ${currentUser.role || 'Member'}`}
+              </small>
             </div>
           </div>
         )}
